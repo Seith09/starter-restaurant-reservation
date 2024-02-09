@@ -24,8 +24,18 @@ function read(reservationId) {
     .then((response) => response[0]);
 }
 
+//updates reservation status
+function update(updatedReservation) {
+  return knex("reservations")
+    .select("*")
+    .where({ reservation_id: updatedReservation.reservation_id })
+    .update(updatedReservation, "*")
+    .then((updatedReservations) => updatedReservations[0]);
+}
+
 module.exports = {
   create,
   list,
   read,
+  update,
 };
