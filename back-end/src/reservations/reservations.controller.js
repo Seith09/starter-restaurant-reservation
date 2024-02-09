@@ -100,6 +100,33 @@ async function reservationExists(req, res, next) {
   }
 }
 
+//checking if date value is in the past
+function validateDateNotInPastAndNotOnTuesday(req, res, next) {
+  const { data = {} } = req.body;
+  const { reservation_date } = data;
+  const resDate = new Date(reservation_date);
+  const currentDate = new Date();
+  let future = true;
+  if (resDate.getUTCDay() == 2) {
+    return next({
+      status: 400,
+      message: "restaurant is closed on tuesdays",
+    });
+  }
+  if (currentDate.getFullYear() > resDate.getFullYear()) {
+    if (currentDate.getTime() > resDate.getTime()) {
+      future = false;
+    }
+  }
+  if (!future) {
+    return next({
+      status: 400,
+      message: "reservation must be in the future",
+    });
+  }
+  next();
+}
+
 // ========================================================
 
 async function list(req, res, next) {
@@ -136,6 +163,7 @@ module.exports = {
     isValidDate,
     isANumber,
     isValidTime,
+    validateDateNotInPastAndNotOnTuesday,
     asyncErrorBoundary(create),
   ],
   read: [reservationExists, asyncErrorBoundary(read)],
