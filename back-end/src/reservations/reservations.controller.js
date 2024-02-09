@@ -1,14 +1,19 @@
 const service = require("./reservations.service.js");
 const hasProperties = require("../errors/hasProperties");
+const hasOnlyValidProperties = require("../errors/hasOnlyValidProperties.js");
 const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
 
-const VALID_PROPERTIES = [
+const REQUIRED = [
   "first_name",
   "last_name",
   "mobile_number",
   "reservation_date",
   "reservation_time",
   "people",
+];
+
+const VALID = [
+  ...REQUIRED,
   "status",
   "reservation_id",
   "created_at",
@@ -16,32 +21,6 @@ const VALID_PROPERTIES = [
 ];
 
 // ================= MIDDLEWARE FUNCTIONS ==================
-
-//checking all properties are included
-const hasRequiredProperties = hasProperties(
-  "first_name",
-  "last_name",
-  "mobile_number",
-  "reservation_date",
-  "reservation_time",
-  "people"
-);
-
-function hasOnlyValidProperties(req, res, next) {
-  const { data = {} } = req.body;
-
-  const invalidFields = Object.keys(data).filter(
-    (field) => !VALID_PROPERTIES.includes(field)
-  );
-
-  if (invalidFields.length) {
-    return next({
-      status: 400,
-      message: `Invalid field(s): ${invalidFields.join(", ")}`,
-    });
-  }
-  next();
-}
 
 //check for valid date middleware
 function isValidDate(req, res, next) {
@@ -142,21 +121,60 @@ function reservationBefore1030AMAndAfter930PM(req, res, next) {
   next();
 }
 
+//middleware to check reservation status
+function reservationStatus(req, res, next) {
+  const { status } = req.body.data;
+
+  if (status) {
+    if (status === "booked") {
+      return next();
+    } else {
+      return next({
+        status: 400,
+        message: `Reservation status is ${status}, cannot create new reservation.`,
+      });
+    }
+  } else {
+    return next();
+  }
+}
+
+//validate reservation status
+function checkReservationStatus(req, res, next) {
+  const { status } = req.body.data;
+
+  validStatuses = ["booked", "seated", "finished", "cancelled"];
+  if (validStatuses.includes(status)) {
+    res.locals.status = status;
+
+    return next();
+  } else {
+    return next({
+      status: 400,
+      message: `Reservation status is ${status}. This is invaild`,
+    });
+  }
+}
+
+//middleware checks if status is finished
+function statusIsFinished(req, res, next) {
+  const { reservation } = res.locals;
+
+  if (reservation.status === "finished") {
+    return next({
+      status: 400,
+      message: "A finished reservation cannot be updated",
+    });
+  } else {
+    return next();
+  }
+}
+
 // ========================================================
 
-async function list(req, res, next) {
-  try {
-    const { date } = req.query;
-    if (date) {
-      const data = await service.list(date);
-      return res.json({ data });
-    } else {
-      const message = "date parameter is required";
-      return res.status(400).json({ error: message });
-    }
-  } catch (error) {
-    next(error);
-  }
+function list(req, res) {
+  const { data } = res.locals;
+  res.json({ data: data });
 }
 
 async function create(req, res) {
@@ -170,17 +188,81 @@ function read(req, res) {
   res.json({ data: reservation });
 }
 
+async function updateStatus(req, res) {
+  const { reservation, status } = res.locals;
+
+  const updatedReservationData = {
+    ...reservation,
+    status: status,
+  };
+  const updatedReservation = await service.update(updatedReservationData);
+
+  res.json({ data: updatedReservation });
+}
+
+async function updateReservation(req, res) {
+  const { reservation } = res.locals;
+
+  const { data } = req.body;
+
+  const updatedReservationData = {
+    ...reservation,
+    ...data,
+  };
+  const updatedReservation = await service.update(updatedReservationData);
+
+  res.json({ data: updatedReservation });
+}
+
+//middleware checks the request query by date and phone
+async function orderByDateAndCheckForMobile(req, res, next) {
+  const { date, mobile_number } = req.query;
+  if (date) {
+    const reservations = await service.list(date);
+    if (reservations.length) {
+      res.locals.data = reservations;
+      return next();
+    } else {
+      return next({
+        status: 404,
+        message: `no pending reservations for ${date}`,
+      });
+    }
+  }
+  if (mobile_number) {
+    const reservation = await service.find(mobile_number);
+    res.locals.data = reservation;
+    return next();
+  }
+}
+
 module.exports = {
-  list: asyncErrorBoundary(list),
+  list: [orderByDateAndCheckForMobile, list],
   create: [
-    hasOnlyValidProperties,
-    hasRequiredProperties,
+    hasProperties(...REQUIRED),
     isValidDate,
     isANumber,
     isValidTime,
     validateDateNotInPastAndNotOnTuesday,
     reservationBefore1030AMAndAfter930PM,
+    reservationStatus,
     asyncErrorBoundary(create),
   ],
-  read: [reservationExists, asyncErrorBoundary(read)],
+  read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
+  updateStatus: [
+    hasProperties("status"),
+    hasOnlyValidProperties("status"),
+    asyncErrorBoundary(reservationExists),
+    checkReservationStatus,
+    statusIsFinished,
+    asyncErrorBoundary(updateStatus),
+  ],
+  updateReservation: [
+    asyncErrorBoundary(reservationExists),
+    hasProperties(...REQUIRED),
+    isValidDate,
+    isANumber,
+    isValidTime,
+    asyncErrorBoundary(updateReservation),
+  ],
 };

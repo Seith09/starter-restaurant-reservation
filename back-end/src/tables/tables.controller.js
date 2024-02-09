@@ -90,7 +90,7 @@ function validateCapacity(req, res, next) {
 function tableStatus(req, res, next) {
   const { status } = res.locals.table;
 
-  if (status === "vacant") {
+  if (status === "free") {
     return next();
   } else {
     return next({
@@ -154,11 +154,11 @@ async function finish(req, res) {
   const updatedTableData = {
     ...table,
     reservation_id: null,
-    status: "vacant",
+    status: "free",
   };
   const updatedTable = await service.finish(updatedTableData);
   const updatedReservation = {
-    status: "complete",
+    status: "finished",
     reservation_id: table.reservation_id,
   };
   await reservationService.update(updatedReservation);
