@@ -95,7 +95,19 @@ function tableStatus(req, res, next) {
   } else {
     return next({
       status: 400,
-      message: `Table is occupied`,
+      message: `occupied`,
+    });
+  }
+}
+
+function tableOccupied(req, res, next) {
+  const { reservation_id } = res.locals.table;
+  if (reservation_id) {
+    return next();
+  } else {
+    return next({
+      status: 400,
+      message: `not occupied`,
     });
   }
 }
@@ -137,6 +149,22 @@ async function seatTable(req, res) {
   res.json({ data: updatedTable });
 }
 
+async function finish(req, res) {
+  const { table } = res.locals;
+  const updatedTableData = {
+    ...table,
+    reservation_id: null,
+    status: "vacant",
+  };
+  const updatedTable = await service.finish(updatedTableData);
+  const updatedReservation = {
+    status: "complete",
+    reservation_id: table.reservation_id,
+  };
+  await reservationService.update(updatedReservation);
+  res.json({ data: updatedTable });
+}
+
 module.exports = {
   list: [asyncErrorBoundary(list)],
   create: [
@@ -152,5 +180,10 @@ module.exports = {
     validateCapacity,
     tableStatus,
     asyncErrorBoundary(seatTable),
+  ],
+  finish: [
+    asyncErrorBoundary(tableExist),
+    tableOccupied,
+    asyncErrorBoundary(finish),
   ],
 };
