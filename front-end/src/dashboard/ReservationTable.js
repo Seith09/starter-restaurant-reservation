@@ -1,9 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router";
+import { useHistory } from "react-router";
 import { updateReservationStatus } from "../utils/api";
 
 const ReservationTable = ({ reservations, setReservationsError }) => {
-  const history = useNavigate();
+  const history = useHistory();
 
   function handleCancel(reservation) {
     const confirm = window.confirm(

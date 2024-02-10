@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { readReservation, updateEditReservation } from "../utils/api";
 import ReservationTemplate from "./ReservationTemplate";
 
@@ -14,7 +14,7 @@ const ReservationEdit = () => {
   };
 
   const { reservation_id } = useParams();
-  const history = useNavigate();
+  const history = useHistory();
 
   const [formData, setFormData] = useState(_initialFormState);
   const [isError, setIsError] = useState([]);

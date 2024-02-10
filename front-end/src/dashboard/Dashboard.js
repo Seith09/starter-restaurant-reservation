@@ -4,7 +4,7 @@ import ErrorAlert from "../layout/ErrorAlert";
 import useQuery from "../utils/useQuery";
 import ReservationTable from "./ReservationTable";
 import TablesTable from "./TablesTable";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { today, previous, next } from "../utils/date-time";
 
 /**
@@ -40,7 +40,7 @@ function Dashboard() {
     return () => abortController.abort();
   }
 
-  const history = useNavigate();
+  const history = useHistory();
 
   function previousClick() {
     history.push(`/dashboard?date=${previous(date)}`);

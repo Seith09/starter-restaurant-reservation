@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { createReservation } from "../utils/api";
 import ReservationTemplate from "./ReservationTemplate";
 
@@ -13,7 +13,7 @@ const ReservationForm = () => {
     people: "",
   };
 
-  const history = useNavigate();
+  const history = useHistory();
 
   const [formData, setFormData] = useState(_initialFormState);
   const [isError, setIsError] = useState([]);

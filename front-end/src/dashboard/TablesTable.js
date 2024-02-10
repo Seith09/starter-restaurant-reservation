@@ -1,9 +1,9 @@
 import React from "react";
 import { deleteSeatedTable } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 const TablesTable = ({ tables, setReservationsError }) => {
-  const history = useNavigate();
+  const history = useHistory();
 
   function handleFreeTable(table) {
     const confirm = window.confirm(

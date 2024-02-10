@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import ErrorAlert from "../layout/ErrorAlert";
 import { listTables, readReservation, updateTable } from "../utils/api";
 
 const SeatReservation = () => {
-  const history = useNavigate();
+  const history = useHistory();
   const { reservation_id } = useParams();
 
   const [reservation, setReservation] = useState({});
