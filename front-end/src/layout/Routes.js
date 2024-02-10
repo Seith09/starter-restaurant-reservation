@@ -1,34 +1,34 @@
 import React from "react";
 
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Dashboard from "../dashboard/Dashboard";
 import NotFound from "./NotFound";
-import { today } from "../utils/date-time";
+import ReservationForm from "../reservations/ReservationForm";
+import TableForm from "../tables/TableForm";
+import SeatReservation from "../reservations/SeatReservation";
+import ReservationSearch from "../reservations/ReservationSearch";
+import ReservationEdit from "../reservations/ReservationEdit";
 
-/**
- * Defines all the routes for the application.
- *
- * You will need to make changes to this file.
- *
- * @returns {JSX.Element}
- */
-function Routes() {
+function RoutesComponent() {
   return (
-    <Switch>
-      <Route exact={true} path="/">
-        <Redirect to={"/dashboard"} />
-      </Route>
-      <Route exact={true} path="/reservations">
-        <Redirect to={"/dashboard"} />
-      </Route>
-      <Route path="/dashboard">
-        <Dashboard date={today()} />
-      </Route>
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/reservations" element={<Navigate to="/dashboard" />} />
+      <Route path="/reservations/new" element={<ReservationForm />} />
+      <Route
+        path="/reservations/:reservation_id/seat"
+        element={<SeatReservation />}
+      />
+      <Route
+        path="/reservations/:reservation_id/edit"
+        element={<ReservationEdit />}
+      />
+      <Route path="/search" element={<ReservationSearch />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/tables/new" element={<TableForm />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
-export default Routes;
+export default RoutesComponent;
