@@ -43,12 +43,15 @@ function ReservationForm({ formInitialState, handleSubmit, handleFormChange }) {
                 className="form-control mb-3"
                 type="tel"
                 name="mobile_number"
-                placeholder="5555555555"
+                placeholder="555-555-5555"
                 value={formInitialState?.mobile_number}
                 onChange={handleFormChange}
+                pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}"
+                title="Mobile number should be 10 digits and can be formatted as 555-555-5555 or 5555555555"
                 required
               />
             </div>
+
             <div>
               <label className="form-label">Reservation Date:</label>
               <input
