@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { listReservations, listTables } from "../utils/api";
-import ErrorAlert from "../layout/ErrorAlert";
-import useQuery from "../utils/useQuery";
-import ReservationTable from "./ReservationTable";
-import TablesTable from "./TablesTable";
-import { useHistory } from "react-router-dom";
-import { today, previous, next } from "../utils/date-time";
+
+import { previous, next, today } from "../utils/date-time";
+import { Link } from "react-router-dom";
+import TableList from "./TableList";
+import ReservationInfo from "../layout/reservations/ReservationInfo";
 
 /**
  * Defines the dashboard page.
@@ -13,77 +12,122 @@ import { today, previous, next } from "../utils/date-time";
  *  the date for which the user wants to view reservations.
  * @returns {JSX.Element}
  */
-
-function Dashboard() {
-  const query = useQuery();
-  let date = query.get("date");
-  date = date ? date : today();
+function Dashboard({ date }) {
   const [reservations, setReservations] = useState([]);
-  const [reservationsError, setReservationsError] = useState(null);
-
+  const [resError, setResError] = useState(null);
+  const [tablesError, setTablesError] = useState(null);
   const [tables, setTables] = useState([]);
 
   useEffect(loadDashboard, [date]);
 
+  // load dashboard with reservations and tables data
   function loadDashboard() {
     const abortController = new AbortController();
-    setReservationsError(null);
 
-    listReservations({ date }, abortController.signal)
+    setResError(null);
+    setTablesError(null);
+    setReservations([]);
+
+    listReservations({ date: date }, abortController.signal)
       .then(setReservations)
-      .catch(setReservationsError);
+      .catch(setResError);
 
-    listTables({ date }, abortController.signal)
+    listTables(abortController.signal)
+      .then((tables) =>
+        tables.sort((tableA, tableB) => tableA.table_id - tableB.table_id)
+      )
       .then(setTables)
-      .catch(setReservationsError);
+      .catch(setTablesError);
 
     return () => abortController.abort();
   }
 
-  const history = useHistory();
-
-  function previousClick() {
-    history.push(`/dashboard?date=${previous(date)}`);
-  }
-
-  function todayClick() {
-    history.push(`/dashboard?date=${today()}`);
-  }
-
-  function nextClick() {
-    history.push(`/dashboard?date=${next(date)}`);
-  }
   return (
-    <main className="">
-      <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for date {date}</h4>
+    <main>
+      <h1 className="d-md-flex justify-content-center">Dashboard</h1>
+      <div>
+        <h4 className="d-md-flex mb-1 justify-content-center">
+          Reservations for {date}
+        </h4>
       </div>
-      <ErrorAlert error={reservationsError} />
-      <div className="row">
-        <div className="col-md-6 col-lg-6 col-sm-12">
-          <div className="button-section">
-            <button className="btn btn-secondary mr-2" onClick={previousClick}>
-              Previous
-            </button>
-            <button className="btn btn-secondary mr-2" onClick={todayClick}>
-              Today
-            </button>
-            <button className="btn btn-secondary mr-2" onClick={nextClick}>
-              Next
-            </button>
-          </div>
-          <ReservationTable
-            reservations={reservations}
-            setReservationsError={setReservationsError}
-          />
-        </div>
-        <div className="col-md-6 col-lg-6 col-sm-12">
-          <TablesTable
-            tables={tables}
-            setReservationsError={setReservationsError}
-          />
-        </div>
+
+      <div className="d-md-flex justify-content-center py-3">
+        <Link to={`/dashboard?date=${previous(date)}`}>
+          <button type="button" className="btn btn-info mx-2">
+            Previous
+          </button>
+        </Link>
+        <Link to={`/dashboard?date=${today()}`}>
+          <button type="button" className="btn btn-info mx-2">
+            Today
+          </button>
+        </Link>
+        <Link to={`/dashboard?date=${next(date)}`}>
+          <button type="button" className="btn btn-info mx-2">
+            Next
+          </button>
+        </Link>
+      </div>
+      <div>
+        <table className="table table-striped table-hover">
+          <thead>
+            <tr className="table-info">
+              <th scope="col">ID</th>
+              <th scope="col">First Name</th>
+              <th scope="col">Last Name</th>
+              <th scope="col">Phone Number</th>
+              <th scope="col">Date</th>
+              <th scope="col">Time</th>
+              <th scope="col"># of Guests</th>
+              <th scope="col">Status</th>
+              <th scope="col">Seat</th>
+              <th scope="col">Edit</th>
+              <th scope="col">Cancel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reservations.length ? (
+              <>
+                {reservations.map((reservation, index) => (
+                  <ReservationInfo
+                    key={reservation.id}
+                    reservation={reservation}
+                    loadDashboard={loadDashboard}
+                  />
+                ))}
+              </>
+            ) : (
+              <tr>
+                <td colSpan="11">No Reservations</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h4 className="d-md-flex mb-1 justify-content-center">Table List</h4>
+        <table className="table table-striped table-hover">
+          <thead>
+            <tr className="table-info">
+              <th scope="col">ID</th>
+              <th scope="col">Table Name</th>
+              <th scope="col">Capacity</th>
+              <th scope="col">Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {tables.map((table, index) => (
+              <TableList
+                key={table.table_id}
+                table={table}
+                error={tablesError}
+                loadDashboard={loadDashboard}
+              />
+            ))}
+          </tbody>
+        </table>
       </div>
     </main>
   );
