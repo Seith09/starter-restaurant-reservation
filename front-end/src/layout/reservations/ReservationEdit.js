@@ -5,7 +5,7 @@ import ErrorAlert from "../ErrorAlert";
 import { notOnTuesday, inTheFuture } from "../../utils/date-time";
 import { readReservation, editReservation } from "../../utils/api";
 
-function Edit() {
+function ReservationEdit() {
   const [error, setError] = useState(null);
   const history = useHistory();
   const { reservation_id } = useParams();
@@ -79,4 +79,4 @@ function Edit() {
   );
 }
 
-export default Edit;
+export default ReservationEdit;

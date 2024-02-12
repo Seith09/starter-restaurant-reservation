@@ -1,5 +1,6 @@
 import React from "react";
 import { cancelReservation } from "../../utils/api";
+import { Link } from "react-router-dom";
 
 function ReservationInfo({ reservation, loadDashboard }) {
   const handleCancel = (e) => {
@@ -25,23 +26,23 @@ function ReservationInfo({ reservation, loadDashboard }) {
         </td>
         <td>
           {reservation.status === "booked" && (
-            <a
+            <Link
               className="btn btn-info"
-              href={`/reservations/${reservation.reservation_id}/seat`}
+              to={`/reservations/${reservation.reservation_id}/seat`}
               role="button"
             >
               Seat
-            </a>
+            </Link>
           )}
         </td>
         <td>
-          <a
+          <Link
             className="btn btn-info"
-            href={`/reservations/${reservation.reservation_id}/edit`}
+            to={`/reservations/${reservation.reservation_id}/edit`}
             role="button"
           >
             Edit
-          </a>
+          </Link>
         </td>
         <td>
           <button
