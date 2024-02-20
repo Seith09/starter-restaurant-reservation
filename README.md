@@ -1,5 +1,7 @@
 Restaurant Reservation System
 
+## Live Site: https://starter-restaurant-reservation-capstone-ei8p.onrender.com/dashboard
+
 ## Database setup
 
 1. Set up a new PostgreSQL database instance by following the instructions in the "PostgreSQL: Creating & Installing Databases" lesson.
