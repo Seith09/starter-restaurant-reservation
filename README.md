@@ -1,6 +1,6 @@
 Restaurant Reservation System
 
-## Live Site: https://starter-restaurant-reservation-capstone-ei8p.onrender.com/dashboard
+## Live Site: [https://starter-restaurant-reservation-capstone-ei8p.onrender.com/dashboard](https://starter-restaurant-reservation-capstone-ei8p.onrender.com)
 
 ## Database setup
 
